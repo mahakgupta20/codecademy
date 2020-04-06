@@ -1,0 +1,95 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import codecademylib3_seaborn
+import glob
+files = glob.glob("states*.csv")
+df_list= []
+for filename in files:
+  data= pd.read_csv(filename)
+  df_list.append(data)
+  
+us_census = pd.concat(df_list) 
+
+print(us_census.head())
+
+print(us_census.dtypes)
+print(us_census.columns)
+
+
+split_df = us_census['Income'].str.split('$', expand= True)
+print(split_df.head())
+
+
+us_census['Income'] = pd.to_numeric(split_df.get(1))
+print(us_census.head())
+print(us_census.dtypes)
+
+split_df2 = us_census['GenderPop'].str.split('_', expand= True)
+print(split_df2.head())
+
+men_data= pd.to_numeric(split_df2.get(0).str[:-1])
+women_data = pd.to_numeric(split_df2.get(1).str[:-1])
+us_census['Women'] = women_data
+us_census['Men']= men_data
+print(men_data.head())
+print(women_data.head())
+print(us_census.head())
+print(us_census.dtypes)
+us_census['Women'] = us_census['Women'].fillna(us_census.TotalPop - us_census.Men)
+
+print(us_census.Women.head(10))
+
+print(us_census.duplicated().value_counts())
+print(us_census.drop_duplicates('State'))
+us_census = us_census.drop_duplicates()
+
+plt.scatter(us_census.Women, us_census.Income) 
+plt.xlabel('Female Population')
+plt.ylabel('Income')
+plt.title('Female Population and Income')
+
+print(us_census.columns)
+
+us_census.Hispanic = us_census.Hispanic.replace('[%,]','',regex=True)
+us_census.Hispanic = pd.to_numeric(us_census.Hispanic)
+
+us_census.White = us_census.White.replace('[%,]','',regex=True)
+us_census.White = pd.to_numeric(us_census.White)
+
+us_census.Black = us_census.Black.replace('[%,]','',regex=True)
+us_census.Black = pd.to_numeric(us_census.Black)
+
+us_census.Native = us_census.Native.replace('[%,]','',regex=True)
+us_census.Native = pd.to_numeric(us_census.Native)
+
+us_census.Asian = us_census.Asian.replace('[%,]','',regex=True)
+us_census.Asian = pd.to_numeric(us_census.Asian)
+
+us_census.Pacific = us_census.Pacific.replace('[%,]','',regex=True)
+us_census.Pacific = pd.to_numeric(us_census.Pacific)
+print(us_census.dtypes)
+
+print(us_census.Hispanic.isna().value_counts())
+print(us_census.White.isna().value_counts())
+print(us_census.Black.isna().value_counts())
+print(us_census.Native.isna().value_counts())
+print(us_census.Asian.isna().value_counts())
+print(us_census.Pacific.isna().value_counts())
+
+us_census['Pacific'] = us_census['Pacific'].fillna(100 - (us_census['Hispanic'] +us_census['Black']+us_census['White']+us_census['Native']+us_census['Asian']  ))
+
+print(us_census.Pacific.isna().value_counts())
+
+us_census = us_census.drop_duplicates()
+plt.hist(us_census.Hispanic, bins=15, label= "hispanic")
+plt.hist(us_census.Black, bins=15,label= "black")
+plt.hist(us_census.White, bins=15,label= "white")
+plt.hist(us_census.Native, bins=15,label= "native")
+plt.hist(us_census.Asian, bins=15,label= "asian")
+plt.hist(us_census.Pacific, bins=15, label= "pacific")
+plt.legend()
+
+plt.show()
+
+
